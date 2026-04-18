@@ -2,8 +2,10 @@
 Produksjons-disambiguering: leser fra geo_disambig.db, skriver til predictions.
 
 Bruk:
-  python disambig_prod.py haiku [fiction]   → Haiku, alle eller bare fiction
-  python disambig_prod.py q8    [fiction]   → Qwen3.5 Q8 på dhlab1
+  python disambig_prod.py haiku   [fiction]   → Haiku, alle eller bare fiction
+  python disambig_prod.py q8      [fiction]   → Qwen3.5 Q8 på dhlab1
+  python disambig_prod.py nano    [fiction]   → gpt-5-nano
+  python disambig_prod.py nano2   [fiction]   → gpt-5.4-nano (raskest, anbefalt for volum)
 
 Filtrering:
   fiction  — kun token_types som finnes i minst én Diktning-bok
@@ -26,6 +28,8 @@ IMAGINATION_DB = Path("~/Github/Dash_Imagination/src/dash_imagination/data/imagi
 ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 Q8_BASE_URL     = "http://dhlab1.nb.no:9090/v1"
 Q8_MODEL        = "qwen3.5-27b-q8"
+NANO_MODEL      = "gpt-5-nano"
+NANO2_MODEL     = "gpt-5.4-nano"
 
 SYSTEM_PROMPT = """\
 Du er en geografisk disambiguerer for norsk 1800-tallstekst.
@@ -145,8 +149,21 @@ def main():
     elif provider == "q8":
         call  = lambda prompt, _: call_q8(prompt)
         model = Q8_MODEL
+    elif provider in ("nano", "nano2"):
+        from openai import OpenAI
+        oai   = OpenAI()
+        model = NANO_MODEL if provider == "nano" else NANO2_MODEL
+        def call(prompt, _):
+            t0   = time.time()
+            resp = oai.chat.completions.create(
+                model=model, temperature=0.0,
+                messages=[{"role": "system", "content": SYSTEM_PROMPT},
+                          {"role": "user",   "content": prompt}],
+                response_format={"type": "json_object"},
+            )
+            return parse_json(resp.choices[0].message.content), time.time() - t0
     else:
-        print(f"Ukjent provider: {provider}. Bruk 'haiku' eller 'q8'.")
+        print(f"Ukjent provider: {provider}. Bruk 'haiku', 'q8', 'nano' eller 'nano2'.")
         sys.exit(1)
 
     fiction_pairs = load_fiction_pairs() if fiction_only else None
