@@ -40,18 +40,21 @@ Evalueringen avdekket en del fasit-feil (se eget avsnitt).
 | gpt-5-mini | 238 (48%) | 239 (48%) | ~$0.50 | 8.1s/kall |
 | Q8 (Qwen 3.5-27B) | 226 (45%) | 228 (46%) | **$0** | ~8s/kall |
 | gpt-4.1-nano | 228 (45%) | 248 (49%) | ~$0.03 | 1.5s/kall |
-| **gpt-5-nano** | **245 (49%)** | **250 (50%)** | **~$0.05** | **~8s/kall** |
-| gpt-5.4-nano | 216 (43%) | 246 (49%) | ~$0.04 | ~1s/kall |
+| **gpt-5-nano** | **245 (49%)** | **250 (50%)** | **~$0.05** | ~8s/kall |
+| gpt-5.4-nano | 216 (43%) | 246 (49%) | ~$0.18 | **~1s/kall** |
 
-`+pp` = etter A→P postprosessering (se eget avsnitt)
+`+pp` = etter A→P postprosessering (se eget avsnitt)  
+Priser verifisert april 2026. `gpt-5.4-nano` ≈ Haiku i pris, men 2.5x raskere.
 
-**Konklusjon:** `gpt-5-nano` er den sterkeste modellen totalt — første til å passere 50% ID-treff
-etter postproc, og med god PERSON/OTHER-diskriminering (8%). `gpt-5.4-nano` er raskere (~1s/kall)
-men noe svakere på ID-treff. For produksjon med hastighetskrav: `gpt-5.4-nano`. For best mulig
-kvalitet til lav kostnad: `gpt-5-nano`.
+**Konklusjon:**
+- **Beste kvalitet/pris:** `gpt-5-nano` — høyest ID-treff (50%+pp), bedre PERSON/OTHER enn 4.1-nano, ~6x billigere enn Haiku/5.4-nano. Ulempe: ~8s/kall.
+- **Beste hastighet:** `gpt-5.4-nano` — ~1s/kall, men tilsvarende Haiku i pris og litt svakere enn gpt-5-nano på kvalitet. Valget fremfor Haiku er hastighet, ikke pris.
+- **Gratis alternativ:** Q8 (Qwen 3.5-27B) — 2–3pp under kommersielle, men krever lokal GPU.
 
-Q8 er fortsatt gratis og 2–3 prosentpoeng under kommersielle modeller.
-For 110k produksjonskall: ~$0 vs ~$35 (Haiku) vs ~$11 (gpt-5-nano).
+For 110k produksjonskall:
+- Q8: ~$0
+- gpt-5-nano: ~$11
+- Haiku / gpt-5.4-nano: ~$40
 
 ---
 

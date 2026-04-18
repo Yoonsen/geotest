@@ -38,13 +38,19 @@ mot gjeldende prislister. Estimatene forutsetter **1,5 mrd input-tokens** og
 | Modell | Input ($/1M) | Output ($/1M) | Input-kost | Output-kost | **Total** |
 |---|---|---|---|---|---|
 | Claude Haiku 4.5 | $0,80 | $4,00 | $1 200 | $2 000 | **$3 200** |
+| gpt-5.4-nano | ~$0,80 | ~$4,00 | ~$1 200 | ~$2 000 | **~$3 200** |
 | gpt-4.1-mini | $0,40 | $1,60 | $600 | $800 | **$1 400** |
+| **gpt-5-nano** | **~$0,10** | **~$0,40** | **~$150** | **~$200** | **~$350** |
 | gpt-4.1-nano | $0,10 | $0,40 | $150 | $200 | **$350** |
 | Claude Sonnet 4.x | $3,00 | $15,00 | $4 500 | $7 500 | **$12 000** |
 | Qwen 3.5-27B (lokal) | $0 | $0 | $0 | $0 | **$0** |
 | Gemma 3 27B (lokal) | $0 | $0 | $0 | $0 | **$0** |
 
-> **Obs:** Kaskade-arkitekturen (billig modell Stage 1 → sterkere modell Stage 2 kun for
+> **Obs:** `gpt-5.4-nano` er raskere enn Haiku (~1s/kall vs 2.5s) og litt bedre på kvalitet,
+> men tilsvarende i pris. `gpt-5-nano` er ~8x raskere enn `gpt-5.4-nano` men ~6x billigere —
+> beste kvalitet/pris-forhold av de kommersielle alternativene.
+>
+> Kaskade-arkitekturen (billig modell Stage 1 → sterkere modell Stage 2 kun for
 > usikre tilfeller) kan redusere Stage-2-kall med 60–70 %, noe som halverer API-kostnadene
 > for hybridoppsett.
 
