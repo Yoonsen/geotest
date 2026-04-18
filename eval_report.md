@@ -25,7 +25,8 @@ Evalueringen avdekket en del fasit-feil (se eget avsnitt).
 | gpt-5-mini | 465 | 14 | 21 | 93% | 7% |
 | Q8 (Qwen 3.5-27B) | 447 | 13 | 40 | 89% | 11% |
 | gpt-4.1-nano | 492 | 1 | 6 | 98% | 2% |
-| **gpt-5.4-nano** | **479** | **11** | **10** | **95%** | **5%** |
+| **gpt-5-nano** | **461** | **15** | **24** | **92%** | **8%** |
+| gpt-5.4-nano | 479 | 11 | 10 | 95% | 5% |
 
 `Q8` = Qwen3.5-27B Q8_0 på dhlab1 RTX A6000  
 `gpt-5.4-nano` = gpt-5.4-nano-2026-03-17 (nyeste nano, evaluert 2026-04-18)  
@@ -39,18 +40,18 @@ Evalueringen avdekket en del fasit-feil (se eget avsnitt).
 | gpt-5-mini | 238 (48%) | 239 (48%) | ~$0.50 | 8.1s/kall |
 | Q8 (Qwen 3.5-27B) | 226 (45%) | 228 (46%) | **$0** | ~8s/kall |
 | gpt-4.1-nano | 228 (45%) | 248 (49%) | ~$0.03 | 1.5s/kall |
-| **gpt-5.4-nano** | **216 (43%)** | **246 (49%)** | **~$0.04** | **~1s/kall** |
+| **gpt-5-nano** | **245 (49%)** | **250 (50%)** | **~$0.05** | **~8s/kall** |
+| gpt-5.4-nano | 216 (43%) | 246 (49%) | ~$0.04 | ~1s/kall |
 
 `+pp` = etter A→P postprosessering (se eget avsnitt)
 
-**Konklusjon:** `gpt-5.4-nano` er det klareste steget fremover blant nano-modellene:
-- PERSON/OTHER opp fra 2% → 5% (11+10 vs 1+6) — nærmer seg Haiku
-- ID-treff etter postproc identisk med `gpt-4.1-nano` (49%)
-- Postproc-gevinsten større (64 vs 53 endringer) — modellen velger oftere A der riktig svar er P
-- Raskeste modellen (~1s/kall), billigste API-alternativ
+**Konklusjon:** `gpt-5-nano` er den sterkeste modellen totalt — første til å passere 50% ID-treff
+etter postproc, og med god PERSON/OTHER-diskriminering (8%). `gpt-5.4-nano` er raskere (~1s/kall)
+men noe svakere på ID-treff. For produksjon med hastighetskrav: `gpt-5.4-nano`. For best mulig
+kvalitet til lav kostnad: `gpt-5-nano`.
 
 Q8 er fortsatt gratis og 2–3 prosentpoeng under kommersielle modeller.
-For 110k produksjonskall: ~$0 vs ~$35 (Haiku) vs ~$9 (gpt-5.4-nano).
+For 110k produksjonskall: ~$0 vs ~$35 (Haiku) vs ~$11 (gpt-5-nano).
 
 ---
 
