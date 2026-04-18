@@ -2,7 +2,7 @@
 
 Evaluator: claude-sonnet-4-6
 Sample: 500 annotasjoner (stratifisert på sjanger)
-Dato: 2026-04-15 / 2026-04-16
+Dato: 2026-04-15 / 2026-04-16 / 2026-04-18
 
 ---
 
@@ -17,23 +17,40 @@ Evalueringen avdekket en del fasit-feil (se eget avsnitt).
 
 ## Hovedresultater
 
-| | Haiku | Haiku+pp | gpt-5-mini | mini+pp | Q8 | Q8+pp | nano | nano+pp |
-|---|---|---|---|---|---|---|---|---|
-| PLACE-andel | 449/500 (90%) | | 465/500 (93%) | | 447/500 (89%) | | 492/500 (98%) | |
-| PERSON/OTHER | 50/500 (10%) | | 35/500 (7%) | | 53/500 (11%) | | 8/500 (2%) | |
-| ID-treff | 233/500 (47%) | 237/500 (47%) | 238/500 (48%) | 239/500 (48%) | 226/500 (45%) | 228/500 (46%) | 228/500 (45%) | 248/500 (49%) |
-| Median responstid | 2.5s | | 8.1s | | ~8s | | 1.5s | |
-| Total tid (500 kall) | 22 min | | 82 min | | ~67 min | | 14 min | |
-| Feil/crashes | 1 | | 0 | | 0 | | 1 | |
-| Kostnad (500 kall) | ~$0.18 | | ~$0.50 | | **$0** | | ~$0.03 | |
+### Label-fordeling (uten postprosessering)
 
-`+pp` = etter postprosessering (A→P normalisering, se eget avsnitt)  
-`Q8` = Qwen3.5-27B Q8_0 på dhlab1 RTX A6000, servert via llama-cpp-python  
-`nano` = gpt-4.1-nano (**NB:** eval kjørt mot gpt-4.1-nano; nå finnes gpt-5-nano og gpt-5.4-nano — bør re-evalueres)
+| Modell | PLACE | PERSON | OTHER | PLACE% | PERSON+OTHER% |
+|---|---|---|---|---|---|
+| Haiku | 449 | 12 | 38 | 90% | 10% |
+| gpt-5-mini | 465 | 14 | 21 | 93% | 7% |
+| Q8 (Qwen 3.5-27B) | 447 | 13 | 40 | 89% | 11% |
+| gpt-4.1-nano | 492 | 1 | 6 | 98% | 2% |
+| **gpt-5.4-nano** | **479** | **11** | **10** | **95%** | **5%** |
 
-**Konklusjon:** Q8 er 2–3 prosentpoeng under de kommersielle modellene, men gratis.
-For 110k produksjonskall: ~$0 vs ~$35 (Haiku). Kvalitetsforskjellen er liten nok til at
-Q8 er et seriøst alternativ, særlig om man kjører flere iterasjoner.
+`Q8` = Qwen3.5-27B Q8_0 på dhlab1 RTX A6000  
+`gpt-5.4-nano` = gpt-5.4-nano-2026-03-17 (nyeste nano, evaluert 2026-04-18)  
+`gpt-4.1-nano` = eldre versjon, beholdt for sammenligning
+
+### ID-treff og kostnad
+
+| Modell | ID-treff | ID-treff +pp | Kostnad/500 | Hastighet |
+|---|---|---|---|---|
+| Haiku | 233 (47%) | 237 (47%) | ~$0.18 | 2.5s/kall |
+| gpt-5-mini | 238 (48%) | 239 (48%) | ~$0.50 | 8.1s/kall |
+| Q8 (Qwen 3.5-27B) | 226 (45%) | 228 (46%) | **$0** | ~8s/kall |
+| gpt-4.1-nano | 228 (45%) | 248 (49%) | ~$0.03 | 1.5s/kall |
+| **gpt-5.4-nano** | **216 (43%)** | **246 (49%)** | **~$0.04** | **~1s/kall** |
+
+`+pp` = etter A→P postprosessering (se eget avsnitt)
+
+**Konklusjon:** `gpt-5.4-nano` er det klareste steget fremover blant nano-modellene:
+- PERSON/OTHER opp fra 2% → 5% (11+10 vs 1+6) — nærmer seg Haiku
+- ID-treff etter postproc identisk med `gpt-4.1-nano` (49%)
+- Postproc-gevinsten større (64 vs 53 endringer) — modellen velger oftere A der riktig svar er P
+- Raskeste modellen (~1s/kall), billigste API-alternativ
+
+Q8 er fortsatt gratis og 2–3 prosentpoeng under kommersielle modeller.
+For 110k produksjonskall: ~$0 vs ~$35 (Haiku) vs ~$9 (gpt-5.4-nano).
 
 ---
 
