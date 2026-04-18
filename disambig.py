@@ -4,8 +4,10 @@ Steg 4: LLM-disambiguering av stedsnavn.
 Bruk:
   python disambig.py openai      → results_openai.jsonl       (gpt-5-mini)
   python disambig.py anthropic   → results_anthropic.jsonl    (claude-haiku-4-5)
-  python disambig.py nano        → results_nano.jsonl         (gpt-4.1-nano)
-  python disambig.py nano-fs     → results_nano_fs.jsonl      (nano + few-shot)
+  python disambig.py nano        → results_gpt5nano.jsonl      (gpt-5-nano)
+  python disambig.py nano2       → results_gpt54nano.jsonl     (gpt-5.4-nano, nyeste)
+  python disambig.py nano-fs     → results_gpt5nano_fs.jsonl   (gpt-5-nano + few-shot)
+  python disambig.py nano2-fs    → results_gpt54nano_fs.jsonl  (gpt-5.4-nano + few-shot)
   python disambig.py q8          → results_q8.jsonl           (Qwen3.5-27B Q8)
   python disambig.py gemma3      → results_gemma3.jsonl       (Gemma 3 27B)
   python disambig.py gemma3-fs   → results_gemma3_fs.jsonl    (Gemma 3 + few-shot)
@@ -23,7 +25,8 @@ from concordance import build_llm_input
 INPUT = Path("sample_500_kwic.jsonl")
 
 OPENAI_MODEL    = "gpt-5-mini"
-NANO_MODEL      = "gpt-5-nano"        # gpt-5-nano-2025-08-07; nyere: gpt-5.4-nano-2026-03-17
+NANO_MODEL      = "gpt-5-nano"        # gpt-5-nano-2025-08-07
+NANO2_MODEL     = "gpt-5.4-nano"      # gpt-5.4-nano-2026-03-17 (nyeste)
 ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 Q8_BASE_URL     = "http://dhlab1.nb.no:9090/v1"
 Q8_MODEL        = "qwen3.5-27b-q8"
@@ -363,13 +366,25 @@ def main():
         client = OpenAI()
         call   = lambda prompt: call_openai_model(client, prompt, NANO_MODEL)
         model  = NANO_MODEL
-        output = Path("results_nano.jsonl")
+        output = Path("results_gpt5nano.jsonl")
+    elif provider == "nano2":
+        from openai import OpenAI
+        client = OpenAI()
+        call   = lambda prompt: call_openai_model(client, prompt, NANO2_MODEL)
+        model  = NANO2_MODEL
+        output = Path("results_gpt54nano.jsonl")
     elif provider == "nano-fs":
         from openai import OpenAI
         client = OpenAI()
         call   = lambda prompt: call_openai_model(client, FEW_SHOT + prompt, NANO_MODEL)
         model  = NANO_MODEL + "-fewshot"
-        output = Path("results_nano_fs.jsonl")
+        output = Path("results_gpt5nano_fs.jsonl")
+    elif provider == "nano2-fs":
+        from openai import OpenAI
+        client = OpenAI()
+        call   = lambda prompt: call_openai_model(client, FEW_SHOT + prompt, NANO2_MODEL)
+        model  = NANO2_MODEL + "-fewshot"
+        output = Path("results_gpt54nano_fs.jsonl")
     elif provider == "anthropic":
         from anthropic import Anthropic
         client = Anthropic()
