@@ -252,6 +252,7 @@ def call_openai_model(client, user_prompt: str, model: str) -> tuple[dict, float
             {"role": "user",   "content": user_prompt},
         ],
         response_format={"type": "json_object"},
+        max_completion_tokens=256,
     )
     return json.loads(resp.choices[0].message.content), time.time() - t0
 

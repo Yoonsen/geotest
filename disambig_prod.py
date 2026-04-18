@@ -156,10 +156,11 @@ def main():
         def call(prompt, _):
             t0   = time.time()
             resp = oai.chat.completions.create(
-                model=model, temperature=0.0,
+                model=model, temperature=1.0,
                 messages=[{"role": "system", "content": SYSTEM_PROMPT},
                           {"role": "user",   "content": prompt}],
                 response_format={"type": "json_object"},
+                max_completion_tokens=128,
             )
             return parse_json(resp.choices[0].message.content), time.time() - t0
     else:
