@@ -407,18 +407,22 @@ if __name__ == "__main__":
         except sqlite3.OperationalError:
             print("Kolonne 'subsumed' finnes allerede.")
 
-        # Marker kortere treff subsumt av lengre treff på samme (dhlabid, seq_start)
-        con.execute("""
+        # Finn posisjoner med overlappende spans, batch-oppdater
+        # (correlated subquery er O(n²) — Python-batch er ~100x raskere)
+        overlaps = con.execute("""
+            SELECT dhlabid, seq_start, MAX(token_len)
+            FROM concordances
+            GROUP BY dhlabid, seq_start
+            HAVING COUNT(DISTINCT token_len) > 1
+        """).fetchall()
+        print(f"  {len(overlaps):,} posisjoner med overlappende spans")
+
+        con.executemany("""
             UPDATE concordances SET subsumed = 1
-            WHERE EXISTS (
-                SELECT 1 FROM concordances c2
-                WHERE c2.dhlabid   = concordances.dhlabid
-                  AND c2.seq_start = concordances.seq_start
-                  AND c2.token_len > concordances.token_len
-            )
-        """)
-        n = con.execute("SELECT changes()").fetchone()[0]
+            WHERE dhlabid = ? AND seq_start = ? AND token_len < ?
+        """, overlaps)
         con.commit()
+        n = con.execute("SELECT COUNT(*) FROM concordances WHERE subsumed=1").fetchone()[0]
         print(f"Markert {n:,} subsumt konkordanser.")
 
         total = con.execute("SELECT COUNT(*) FROM concordances").fetchone()[0]
