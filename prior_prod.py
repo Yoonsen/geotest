@@ -6,8 +6,10 @@ Enhet: (surface, geonames_id) — samme som token_types/predictions.
 Resultat lagres i tabellen `priors` i geo_disambig.db.
 
 Bruk:
-  python prior_prod.py haiku [fiction]   → Haiku, alle eller bare fiction
-  python prior_prod.py q8    [fiction]   → Qwen3.5 Q8 på dhlab1
+  python prior_prod.py haiku  [fiction]   → Haiku, alle eller bare fiction
+  python prior_prod.py q8     [fiction]   → Qwen3.5 Q8 på dhlab1
+  python prior_prod.py nano2  [fiction]   → gpt-5.4-nano, alle eller bare fiction
+  python prior_prod.py nano2  nokwic      → kun token_types uten KWIC (3k fallback-kjøring)
 """
 
 import json
@@ -24,6 +26,7 @@ IMAGINATION_DB = Path("~/Github/Dash_Imagination/src/dash_imagination/data/imagi
 ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 Q8_BASE_URL     = "http://dhlab1.nb.no:9090/v1"
 Q8_MODEL        = "qwen3.5-27b-q8"
+NANO2_MODEL     = "gpt-5.4-nano"
 
 PRIORS_SCHEMA = """
 CREATE TABLE IF NOT EXISTS priors (
@@ -140,9 +143,25 @@ def load_fiction_pairs() -> set[tuple[str, int]]:
     return pairs
 
 
+def call_nano2(prompt: str) -> tuple[dict, float]:
+    from openai import OpenAI
+    client = OpenAI()
+    t0 = time.time()
+    resp = client.chat.completions.create(
+        model=NANO2_MODEL, temperature=1.0,
+        messages=[{"role": "system", "content": SYSTEM_PROMPT},
+                  {"role": "user",   "content": prompt}],
+        response_format={"type": "json_object"},
+        max_completion_tokens=128,
+    )
+    return parse_json(resp.choices[0].message.content), time.time() - t0
+
+
 def main():
     provider     = sys.argv[1] if len(sys.argv) > 1 else "haiku"
-    fiction_only = len(sys.argv) > 2 and sys.argv[2] == "fiction"
+    filter_arg   = sys.argv[2] if len(sys.argv) > 2 else ""
+    fiction_only = filter_arg == "fiction"
+    nokwic_only  = filter_arg == "nokwic"
 
     if provider == "haiku":
         from anthropic import Anthropic
@@ -152,8 +171,11 @@ def main():
     elif provider == "q8":
         call  = lambda prompt, _: call_q8(prompt)
         model = Q8_MODEL
+    elif provider == "nano2":
+        call  = lambda prompt, _: call_nano2(prompt)
+        model = NANO2_MODEL
     else:
-        print(f"Ukjent provider: {provider}. Bruk 'haiku' eller 'q8'.")
+        print(f"Ukjent provider: {provider}. Bruk 'haiku', 'q8' eller 'nano2'.")
         sys.exit(1)
 
     con      = sqlite3.connect(DISAMBIG_DB, timeout=30)
@@ -182,8 +204,14 @@ def main():
         fiction_pairs = load_fiction_pairs()
         rows = [(s, g, d, cat, yr) for s, g, d, cat, yr in rows
                 if (s, g) in fiction_pairs]
+    elif nokwic_only:
+        no_kwic = set(con.execute(
+            "SELECT surface, geonames_id FROM token_types WHERE kwic_fetched=0"
+        ).fetchall())
+        rows = [(s, g, d, cat, yr) for s, g, d, cat, yr in rows
+                if (s, g) in no_kwic]
 
-    subset_label = "fiction" if fiction_only else "alle kategorier"
+    subset_label = "fiction" if fiction_only else "nokwic" if nokwic_only else "alle kategorier"
     print(f"Prior-disambiguering: {len(rows):,} token_types ({subset_label}) med {model}")
 
     errors = 0
