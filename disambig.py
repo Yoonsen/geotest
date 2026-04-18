@@ -23,7 +23,7 @@ from concordance import build_llm_input
 INPUT = Path("sample_500_kwic.jsonl")
 
 OPENAI_MODEL    = "gpt-5-mini"
-NANO_MODEL      = "gpt-4.1-nano"
+NANO_MODEL      = "gpt-5-nano"        # gpt-5-nano-2025-08-07; nyere: gpt-5.4-nano-2026-03-17
 ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 Q8_BASE_URL     = "http://dhlab1.nb.no:9090/v1"
 Q8_MODEL        = "qwen3.5-27b-q8"

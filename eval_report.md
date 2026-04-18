@@ -29,7 +29,7 @@ Evalueringen avdekket en del fasit-feil (se eget avsnitt).
 
 `+pp` = etter postprosessering (A→P normalisering, se eget avsnitt)  
 `Q8` = Qwen3.5-27B Q8_0 på dhlab1 RTX A6000, servert via llama-cpp-python  
-`nano` = gpt-4.1-nano
+`nano` = gpt-4.1-nano (**NB:** eval kjørt mot gpt-4.1-nano; nå finnes gpt-5-nano og gpt-5.4-nano — bør re-evalueres)
 
 **Konklusjon:** Q8 er 2–3 prosentpoeng under de kommersielle modellene, men gratis.
 For 110k produksjonskall: ~$0 vs ~$35 (Haiku). Kvalitetsforskjellen er liten nok til at
