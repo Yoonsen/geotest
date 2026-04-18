@@ -2,8 +2,13 @@
 Steg 4: LLM-disambiguering av stedsnavn.
 
 Bruk:
-  python disambig.py openai    → results_openai.jsonl  (gpt-5-mini)
-  python disambig.py anthropic → results_anthropic.jsonl  (claude-haiku-4-5)
+  python disambig.py openai      → results_openai.jsonl       (gpt-5-mini)
+  python disambig.py anthropic   → results_anthropic.jsonl    (claude-haiku-4-5)
+  python disambig.py nano        → results_nano.jsonl         (gpt-4.1-nano)
+  python disambig.py nano-fs     → results_nano_fs.jsonl      (nano + few-shot)
+  python disambig.py q8          → results_q8.jsonl           (Qwen3.5-27B Q8)
+  python disambig.py gemma3      → results_gemma3.jsonl       (Gemma 3 27B)
+  python disambig.py gemma3-fs   → results_gemma3_fs.jsonl    (Gemma 3 + few-shot)
 
 Output er minimalt: kun ny/resolved data, ikke ekko av input.
 Join mot sample_500_kwic.jsonl på dhlabid for full kontekst.
@@ -22,6 +27,8 @@ NANO_MODEL      = "gpt-4.1-nano"
 ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 Q8_BASE_URL     = "http://dhlab1.nb.no:9090/v1"
 Q8_MODEL        = "qwen3.5-27b-q8"
+GEMMA3_BASE_URL = "http://dhlab1.nb.no:9091/v1"   # egen server-port for Gemma 3
+GEMMA3_MODEL    = "gemma-3-27b"
 
 EVAL_MODE = True   # True = inkluder reasoning i output (for evaluering); False = prod
 
@@ -278,6 +285,41 @@ def call_anthropic(client, user_prompt: str) -> tuple[dict, float]:
     return json.loads(text[start:end]), time.time() - t0
 
 
+def call_gemma3(user_prompt: str, base_url: str = GEMMA3_BASE_URL,
+                few_shot_prefix: str = "") -> tuple[dict, float]:
+    """Kall mot lokal Gemma 3 via raw completions-endepunkt.
+    Gemma 3 bruker <start_of_turn>/<end_of_turn>-format (ikke im_start/im_end).
+    Ingen /no_think-direktiv — Gemma 3 er ikke et reasoning-model.
+    """
+    import requests as _req
+    prompt_text = few_shot_prefix + user_prompt if few_shot_prefix else user_prompt
+    raw = (
+        f"<start_of_turn>user\n{SYSTEM_PROMPT}\n\n{prompt_text}<end_of_turn>\n"
+        f"<start_of_turn>model\n"
+    )
+    t0 = time.time()
+    resp = _req.post(
+        base_url.rstrip("/") + "/completions",
+        json={
+            "prompt":      raw,
+            "max_tokens":  256,
+            "temperature": 0.0,
+            "stop":        ["<end_of_turn>"],
+        },
+        timeout=60,
+    )
+    resp.raise_for_status()
+    text = resp.json()["choices"][0]["text"].strip()
+    if text.startswith("```"):
+        text = "\n".join(text.split("\n")[1:])
+        if text.endswith("```"):
+            text = text[:-3].rstrip()
+    start, end = text.find("{"), text.rfind("}") + 1
+    if start == -1:
+        raise ValueError(f"Ingen JSON i svar: {text[:120]}")
+    return json.loads(text[start:end]), time.time() - t0
+
+
 def call_q8(client, user_prompt: str) -> tuple[dict, float]:
     """Kall mot lokal Qwen3.5 Q8 via raw completions-endepunkt.
     Bruker tom <think></think>-blokk som prefiks for å hoppe over reasoning.
@@ -340,6 +382,14 @@ def main():
         call   = lambda prompt: call_q8(client, prompt)
         model  = Q8_MODEL
         output = Path("results_q8.jsonl")
+    elif provider == "gemma3":
+        call   = lambda prompt: call_gemma3(prompt)
+        model  = GEMMA3_MODEL
+        output = Path("results_gemma3.jsonl")
+    elif provider == "gemma3-fs":
+        call   = lambda prompt: call_gemma3(prompt, few_shot_prefix=FEW_SHOT)
+        model  = GEMMA3_MODEL + "-fewshot"
+        output = Path("results_gemma3_fs.jsonl")
     else:
         from openai import OpenAI
         client = OpenAI()
