@@ -1,0 +1,25 @@
+# Store databaser
+geonames.db
+geo_disambig.db
+geo_disambig.db-wal
+geo_disambig.db-shm
+annotations.db
+annotations.db-wal
+annotations.db-shm
+priors_dhlab1.db
+
+# Store datafiler
+annotations_fiction.json
+annotations_fiction.jsonl
+prior_nonfiction.jsonl
+haiku_fiction.log
+haiku_prior_fiction.log
+kwic_batch*.log
+kwic_loop.log
+results_nano_fs.log
+results_nano.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
